@@ -1,6 +1,6 @@
-class ReplaceVariableTool extends ContentTools.Tools.Bold
+class LocalVariableTool extends ContentTools.Tools.Bold
 
-  # Insert/Remove a <replace-variable> tag.
+  # Insert/Remove a <local-variable> tag.
 
   # Register the tool with the toolshelf
   ContentTools.ToolShelf.stow(@, 'local-variable')
@@ -14,7 +14,7 @@ class ReplaceVariableTool extends ContentTools.Tools.Bold
   @tagName = 'local-variable'
 
   @apply: (element, selection, callback) ->
-# Apply a <replace-variable> element to the specified element and selection
+# Apply a <local-variable> element to the specified element and selection
 
 # Store the selection state of the element so we can restore it once done
     element.storeState()
@@ -121,13 +121,12 @@ class ReplaceVariableTool extends ContentTools.Tools.Bold
 
 class LocalVariableDialog extends ContentTools.AnchoredDialogUI
 
-  # An anchored dialog to support inserting/modifying a link
+  # An anchored dialog to support inserting/modifying a local variable
 
   constructor: (value='') ->
     super()
 
-    # The initial value to set the href and target attribute
-    # of the link as (e.g if we're editing a link).
+    # The initial value is the variable name.
     @_value=value
 
   mount: () ->
@@ -135,16 +134,19 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
     super()
 
     # Create the input element for the link
-    @_domInput = document.createElement('input')
-    @_domInput.setAttribute('class', 'ct-local-variable-dialog__input')
-    @_domInput.setAttribute('name', 'value')
-    @_domInput.setAttribute(
-      'placeholder',
-      ContentEdit._('Enter the variable name') + '...'
-    )
-    @_domInput.setAttribute('type', 'text')
-    @_domInput.setAttribute('value', @_value)
-    @_domElement.appendChild(@_domInput)
+    @_domSelect = document.createElement('select')
+    @_domSelect.setAttribute('class', 'ct-local-variable-dialog__input')
+    @_domSelect.setAttribute('name', 'value')
+    for lv, index in localVariables
+      domOptionText = document.createTextNode(lv)
+      domOption = document.createElement('option')
+      domOption.setAttribute('value', lv)
+      if lv == @_value
+        domOption.setAttribute('selected', 'true')
+      domOption.appendChild(domOptionText)
+      @_domSelect.appendChild(domOption)
+
+    @_domElement.appendChild(@_domSelect)
 
     # Create the confirm button
     @_domButton = @constructor.createDiv(['ct-local-variable-dialog__button'])
@@ -162,7 +164,7 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
       @dispatchEvent(@createEvent('save'))
       return
 
-    detail = {value: @_domInput.value.trim()}
+    detail = {value: @_domSelect.value.trim()}
 
     @dispatchEvent(@createEvent('save', detail))
 
@@ -171,24 +173,24 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
     super()
 
     # Once visible automatically give focus to the link input
-    @_domInput.focus()
+    @_domSelect.focus()
 
-    # If a there's an intially value then select it so it can be easily
+    # If a there's an initially value then select it so it can be easily
     # replaced.
     if @_value
-      @_domInput.select()
+      @_domSelect.select()
 
   unmount: () ->
 # Unmount the component from the DOM
 
 # Unselect any content
     if @isMounted()
-      @_domInput.blur()
+      @_domSelect.blur()
 
     super()
 
     @_domButton = null
-    @_domInput = null
+    @_domSelect = null
 
 # Private methods
 
@@ -199,7 +201,7 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
 # or the button is selected.
 
 # Input
-    @_domInput.addEventListener 'keypress', (ev) =>
+    @_domSelect.addEventListener 'keypress', (ev) =>
       if ev.keyCode is 13
         @save()
 

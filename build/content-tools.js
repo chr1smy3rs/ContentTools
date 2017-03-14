@@ -5385,7 +5385,7 @@
 }).call(this);
 
 (function() {
-  var AttributeUI, ContentTools, CropMarksUI, LocalVariableDialog, ReplaceVariableTool, StyleUI, exports, _EditorApp,
+  var AttributeUI, ContentTools, CropMarksUI, LocalVariableDialog, LocalVariableTool, StyleUI, exports, _EditorApp,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -10246,22 +10246,22 @@
 
   })(ContentTools.Tool);
 
-  ReplaceVariableTool = (function(_super) {
-    __extends(ReplaceVariableTool, _super);
+  LocalVariableTool = (function(_super) {
+    __extends(LocalVariableTool, _super);
 
-    function ReplaceVariableTool() {
-      return ReplaceVariableTool.__super__.constructor.apply(this, arguments);
+    function LocalVariableTool() {
+      return LocalVariableTool.__super__.constructor.apply(this, arguments);
     }
 
-    ContentTools.ToolShelf.stow(ReplaceVariableTool, 'local-variable');
+    ContentTools.ToolShelf.stow(LocalVariableTool, 'local-variable');
 
-    ReplaceVariableTool.label = 'Local Variable';
+    LocalVariableTool.label = 'Local Variable';
 
-    ReplaceVariableTool.icon = 'local-variable';
+    LocalVariableTool.icon = 'local-variable';
 
-    ReplaceVariableTool.tagName = 'local-variable';
+    LocalVariableTool.tagName = 'local-variable';
 
-    ReplaceVariableTool.apply = function(element, selection, callback) {
+    LocalVariableTool.apply = function(element, selection, callback) {
       var allowScrolling, app, dialog, domElement, from, measureSpan, modal, rect, selectTag, to, transparent, _ref;
       element.storeState();
       selectTag = new HTMLString.Tag('span', {
@@ -10310,7 +10310,7 @@
       return dialog.show();
     };
 
-    ReplaceVariableTool.getValue = function(element, selection) {
+    LocalVariableTool.getValue = function(element, selection) {
       var c, from, selectedContent, tag, to, _i, _j, _len, _len1, _ref, _ref1, _ref2;
       _ref = selection.get(), from = _ref[0], to = _ref[1];
       selectedContent = element.content.slice(from, to);
@@ -10331,7 +10331,7 @@
       }
     };
 
-    return ReplaceVariableTool;
+    return LocalVariableTool;
 
   })(ContentTools.Tools.Bold);
 
@@ -10347,14 +10347,23 @@
     }
 
     LocalVariableDialog.prototype.mount = function() {
+      var domOption, domOptionText, index, lv, _i, _len;
       LocalVariableDialog.__super__.mount.call(this);
-      this._domInput = document.createElement('input');
-      this._domInput.setAttribute('class', 'ct-local-variable-dialog__input');
-      this._domInput.setAttribute('name', 'value');
-      this._domInput.setAttribute('placeholder', ContentEdit._('Enter the variable name') + '...');
-      this._domInput.setAttribute('type', 'text');
-      this._domInput.setAttribute('value', this._value);
-      this._domElement.appendChild(this._domInput);
+      this._domSelect = document.createElement('select');
+      this._domSelect.setAttribute('class', 'ct-local-variable-dialog__input');
+      this._domSelect.setAttribute('name', 'value');
+      for (index = _i = 0, _len = localVariables.length; _i < _len; index = ++_i) {
+        lv = localVariables[index];
+        domOptionText = document.createTextNode(lv);
+        domOption = document.createElement('option');
+        domOption.setAttribute('value', lv);
+        if (lv === this._value) {
+          domOption.setAttribute('selected', 'true');
+        }
+        domOption.appendChild(domOptionText);
+        this._domSelect.appendChild(domOption);
+      }
+      this._domElement.appendChild(this._domSelect);
       this._domButton = this.constructor.createDiv(['ct-local-variable-dialog__button']);
       this._domElement.appendChild(this._domButton);
       return this._addDOMEventListeners();
@@ -10367,30 +10376,30 @@
         return;
       }
       detail = {
-        value: this._domInput.value.trim()
+        value: this._domSelect.value.trim()
       };
       return this.dispatchEvent(this.createEvent('save', detail));
     };
 
     LocalVariableDialog.prototype.show = function() {
       LocalVariableDialog.__super__.show.call(this);
-      this._domInput.focus();
+      this._domSelect.focus();
       if (this._value) {
-        return this._domInput.select();
+        return this._domSelect.select();
       }
     };
 
     LocalVariableDialog.prototype.unmount = function() {
       if (this.isMounted()) {
-        this._domInput.blur();
+        this._domSelect.blur();
       }
       LocalVariableDialog.__super__.unmount.call(this);
       this._domButton = null;
-      return this._domInput = null;
+      return this._domSelect = null;
     };
 
     LocalVariableDialog.prototype._addDOMEventListeners = function() {
-      this._domInput.addEventListener('keypress', (function(_this) {
+      this._domSelect.addEventListener('keypress', (function(_this) {
         return function(ev) {
           if (ev.keyCode === 13) {
             return _this.save();
