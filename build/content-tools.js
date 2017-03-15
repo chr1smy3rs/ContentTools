@@ -10286,14 +10286,17 @@
       dialog = new LocalVariableDialog(this.getValue(element, selection));
       dialog.position([rect.left + (rect.width / 2) + window.scrollX, rect.top + (rect.height / 2) + window.scrollY]);
       dialog.addEventListener('save', function(ev) {
-        var replaceVariable, value;
+        var localVariable, localVariableTag, tooltip, value;
         value = ev.detail().value;
         element.content = element.content.unformat(from, to, 'local-variable');
         if (value) {
-          replaceVariable = new HTMLString.Tag('local-variable', {
-            value: value
+          localVariable = localVariables[value];
+          tooltip = value + ' (' + (localVariable['format'] || localVariable['type']) + ')';
+          localVariableTag = new HTMLString.Tag('local-variable', {
+            value: value,
+            tooltip: tooltip
           });
-          element.content = element.content.format(from, to, replaceVariable);
+          element.content = element.content.format(from, to, localVariableTag);
         }
         element.updateInnerHTML();
         element.taint();
@@ -10347,17 +10350,19 @@
     }
 
     LocalVariableDialog.prototype.mount = function() {
-      var domOption, domOptionText, index, lv, _i, _len;
+      var attr, domOption, domOptionText, info, tooltip;
       LocalVariableDialog.__super__.mount.call(this);
       this._domSelect = document.createElement('select');
       this._domSelect.setAttribute('class', 'ct-local-variable-dialog__input');
       this._domSelect.setAttribute('name', 'value');
-      for (index = _i = 0, _len = localVariables.length; _i < _len; index = ++_i) {
-        lv = localVariables[index];
-        domOptionText = document.createTextNode(lv);
+      for (attr in localVariables) {
+        if (!__hasProp.call(localVariables, attr)) continue;
+        info = localVariables[attr];
+        tooltip = info['format'] || info['type'];
+        domOptionText = document.createTextNode(attr + ' (' + tooltip + ')');
         domOption = document.createElement('option');
-        domOption.setAttribute('value', lv);
-        if (lv === this._value) {
+        domOption.setAttribute('value', attr);
+        if (attr === this._value) {
           domOption.setAttribute('selected', 'true');
         }
         domOption.appendChild(domOptionText);
@@ -10383,10 +10388,7 @@
 
     LocalVariableDialog.prototype.show = function() {
       LocalVariableDialog.__super__.show.call(this);
-      this._domSelect.focus();
-      if (this._value) {
-        return this._domSelect.select();
-      }
+      return this._domSelect.focus();
     };
 
     LocalVariableDialog.prototype.unmount = function() {

@@ -72,8 +72,10 @@ class LocalVariableTool extends ContentTools.Tools.Bold
 
       # If specified add the new replace-variable
       if value
-        replaceVariable = new HTMLString.Tag('local-variable', {value: value})
-        element.content = element.content.format(from, to, replaceVariable)
+        localVariable = localVariables[value]
+        tooltip = value + ' (' + (localVariable['format'] || localVariable['type']) + ')'
+        localVariableTag = new HTMLString.Tag('local-variable', {value: value, tooltip: tooltip})
+        element.content = element.content.format(from, to, localVariableTag)
 
       element.updateInnerHTML()
       element.taint()
@@ -137,11 +139,12 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
     @_domSelect = document.createElement('select')
     @_domSelect.setAttribute('class', 'ct-local-variable-dialog__input')
     @_domSelect.setAttribute('name', 'value')
-    for lv, index in localVariables
-      domOptionText = document.createTextNode(lv)
+    for own attr, info of localVariables
+      tooltip = info['format'] || info['type']
+      domOptionText = document.createTextNode(attr + ' (' + tooltip + ')')
       domOption = document.createElement('option')
-      domOption.setAttribute('value', lv)
-      if lv == @_value
+      domOption.setAttribute('value', attr)
+      if attr == @_value
         domOption.setAttribute('selected', 'true')
       domOption.appendChild(domOptionText)
       @_domSelect.appendChild(domOption)
@@ -174,11 +177,6 @@ class LocalVariableDialog extends ContentTools.AnchoredDialogUI
 
     # Once visible automatically give focus to the link input
     @_domSelect.focus()
-
-    # If a there's an initially value then select it so it can be easily
-    # replaced.
-    if @_value
-      @_domSelect.select()
 
   unmount: () ->
 # Unmount the component from the DOM
