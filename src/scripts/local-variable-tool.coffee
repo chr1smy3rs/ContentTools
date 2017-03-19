@@ -13,6 +13,14 @@ class LocalVariableTool extends ContentTools.Tools.Bold
   # from the class cleaner.
   @tagName = 'local-variable'
 
+  @canApply: (element, selection) ->
+# Return true if the tool can be applied to the current
+# element/selection.
+    if(Object.keys(localVariables).length == 0)
+      return false
+
+    return super(element, selection)
+
   @apply: (element, selection, callback) ->
 # Apply a <local-variable> element to the specified element and selection
 
@@ -64,13 +72,13 @@ class LocalVariableTool extends ContentTools.Tools.Bold
 
     # Listen for save events against the dialog
     dialog.addEventListener 'save', (ev) ->
-# Add/Update/Remove the <replace-variable>
+# Add/Update/Remove the <local-variable>
       value = ev.detail().value
 
       # Clear any existing link
       element.content = element.content.unformat(from, to, 'local-variable')
 
-      # If specified add the new replace-variable
+      # If specified add the new local-variable
       if value
         localVariable = localVariables[value]
         tooltip = value + ' (' + (localVariable['format'] || localVariable['type']) + ')'
@@ -101,17 +109,17 @@ class LocalVariableTool extends ContentTools.Tools.Bold
 
 
   @getValue: (element, selection) ->
-# Find the first character in the selected text that has a `replace-variable` tag and
+# Find the first character in the selected text that has a `local-variable` tag and
 # return its `value` value.
     [from, to] = selection.get()
     selectedContent = element.content.slice(from, to)
     for c in selectedContent.characters
 
-# Does this character have a replace-variable tag applied?
+# Does this character have a local-variable tag applied?
       if not c.hasTags('local-variable')
         continue
 
-      # Find the replace-variable tag and return the value attribute value
+      # Find the local-variable tag and return the value attribute value
       for tag in c.tags()
         if tag.name() == 'local-variable'
           return tag.attr('value')
