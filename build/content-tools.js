@@ -10261,6 +10261,13 @@
 
     LocalVariableTool.tagName = 'local-variable';
 
+    LocalVariableTool.canApply = function(element, selection) {
+      if (Object.keys(localVariables).length === 0) {
+        return false;
+      }
+      return LocalVariableTool.__super__.constructor.canApply.call(this, element, selection);
+    };
+
     LocalVariableTool.apply = function(element, selection, callback) {
       var allowScrolling, app, dialog, domElement, from, measureSpan, modal, rect, selectTag, to, transparent, _ref;
       element.storeState();
